@@ -11,23 +11,24 @@ import { DaoUnauthorized } from "@aragon/osx/core/utils/auth.sol";
 
 import { AragonTest } from "./base/AragonTest.sol";
 
-import { SimpleStorageSetup } from "../src/SimpleStorageSetup.sol";
-import { SimpleStorage } from "../src/SimpleStorage.sol";
+import { ProposerPluginSetup } from "../src/ProposerPluginSetup.sol";
+import { ProposerPlugin } from "../src/ProposerPlugin.sol";
 
 abstract contract SimpleStorageTest is AragonTest {
     DAO internal dao;
-    SimpleStorage internal plugin;
-    SimpleStorageSetup internal setup;
+    ProposerPlugin internal plugin;
+    ProposerPluginSetup internal setup;
     uint256 internal constant NUMBER = 420;
+    uint256 internal constant MAX_DELAY = 4 weeks;
 
     function setUp() public virtual {
-        setup = new SimpleStorageSetup();
+        setup = new ProposerPluginSetup();
         bytes memory setupData = abi.encode(NUMBER);
 
         (DAO _dao, address _plugin) = createMockDaoWithPlugin(setup, setupData);
 
         dao = _dao;
-        plugin = SimpleStorage(_plugin);
+        plugin = ProposerPlugin(_plugin);
     }
 }
 
@@ -38,7 +39,7 @@ contract SimpleStorageInitializeTest is SimpleStorageTest {
 
     function test_initialize() public {
         assertEq(address(plugin.dao()), address(dao));
-        assertEq(plugin.number(), NUMBER);
+        assertEq(plugin.maxDelay(), MAX_DELAY);
     }
 
     function test_reverts_if_reinitialized() public {
@@ -54,8 +55,8 @@ contract SimpleStorageStoreNumberTest is SimpleStorageTest {
 
     function test_store_number() public {
         vm.prank(address(dao));
-        plugin.storeNumber(69);
-        assertEq(plugin.number(), 69);
+        plugin.changeDelay(69);
+        assertEq(plugin.delay(), 69);
     }
 
     function test_reverts_if_not_auth() public {
@@ -69,6 +70,6 @@ contract SimpleStorageStoreNumberTest is SimpleStorageTest {
             abi.encodeWithSelector(DaoUnauthorized.selector, dao, plugin, address(this), keccak256("STORE_PERMISSION"))
         );
 
-        plugin.storeNumber(69);
+        plugin.changeDelay(69);
     }
 }

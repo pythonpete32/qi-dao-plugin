@@ -4,14 +4,14 @@ pragma solidity ^0.8.17;
 
 import { PermissionLib } from "@aragon/osx/core/permission/PermissionLib.sol";
 import { PluginSetup, IPluginSetup } from "@aragon/osx/framework/plugin/setup/PluginSetup.sol";
-import { SimpleStorage } from "./SimpleStorage.sol";
+import { ProposerPlugin } from "./ProposerPlugin.sol";
 
-/// @title SimpleStorageSetup build 1
-contract SimpleStorageSetup is PluginSetup {
+/// @title ProposerPluginSetup build 1
+contract ProposerPluginSetup is PluginSetup {
     address private immutable IMPLEMEMTATION;
 
     constructor() {
-        IMPLEMEMTATION = address(new SimpleStorage());
+        IMPLEMEMTATION = address(new ProposerPlugin());
     }
 
     /// @inheritdoc IPluginSetup
@@ -25,7 +25,7 @@ contract SimpleStorageSetup is PluginSetup {
         uint256 number = abi.decode(_data, (uint256));
 
         plugin =
-            createERC1967Proxy(IMPLEMEMTATION, abi.encodeWithSelector(SimpleStorage.initialize.selector, _dao, number));
+            createERC1967Proxy(IMPLEMEMTATION, abi.encodeWithSelector(ProposerPlugin.initialize.selector, _dao, number));
 
         PermissionLib.MultiTargetPermission[] memory permissions = new PermissionLib.MultiTargetPermission[](1);
 
