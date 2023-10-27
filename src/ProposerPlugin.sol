@@ -75,6 +75,7 @@ contract ProposerPlugin is PluginUUPSUpgradeable {
     // ------------------------------------------------------------------------------------------------------------
 
     error AlreadyExecuted(uint256 executionRequestId);
+    error TooEarly(uint256 currentTime, uint256 executionTime);
 
     // ------------------------------------------------------------------------------------------------------------
     // Unpermissioned functions
@@ -122,6 +123,9 @@ contract ProposerPlugin is PluginUUPSUpgradeable {
     function executeExecution(uint256 executionRequestId) external {
         ExecutionRequests storage executionRequest = executionRequests[executionRequestId];
         if (executionRequest.executed == true) revert AlreadyExecuted(executionRequestId);
+        if (block.timestamp < executionRequest.timestamp + delay) {
+            revert TooEarly({ currentTime: block.timestamp, executionTime: executionRequest.timestamp + delay });
+        }
         executionRequest.executed = true;
 
         _executeFromDao(executionRequestId);
